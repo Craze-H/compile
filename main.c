@@ -71,6 +71,7 @@ int main(){
 					break;
 				default:
 					printf("Err\n");
+					return 0; 
 			}
 		}
 		else {
