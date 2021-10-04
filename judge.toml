@@ -1,0 +1,8 @@
+[jobs.lexer]
+
+image = { source = "dockerfile", path = "." }
+
+run = [
+  "./main $input"
+]
+
