@@ -1,0 +1,7 @@
+"D:\CLion\CLion 2021.2.3\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - MinGW Makefiles" "D:\Github Desktop\compile\lab"
+-- Configuring done
+CMake Error at CMakeLists.txt:6 (add_executable):
+  No SOURCES given to target: lab.c
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.
