@@ -8,6 +8,7 @@ int now_pos;
 int main(){
     freopen("in.txt", "r", stdin);
 	getSym();
+    printf("}\n");
     return 0;
     words[0].id = 0;
 	/*for (int i = 1; i <= words_len; i++){
