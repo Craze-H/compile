@@ -4,6 +4,7 @@
 #include<cstring>
 #include<queue>
 #include<string>
+#include<stack>
 #define LL long long int
 char text[10005];
 char c_get,Token[10005];
@@ -60,11 +61,11 @@ id表：
 
 //语法输出 
 struct node{
-	int id;
-	LL num;
-	char* name;
-	node(){}
-	node(int id){
+	int id{};
+	LL num{};
+	char* name{};
+	node()= default;
+	explicit node(int id){
 		this->id = id;
 	}
 	node(int id,LL num,int nothing){
@@ -77,6 +78,9 @@ struct node{
 		strcpy(this->name,name);
 	}
 }words[100005];
+std::stack<int> registerStack;
+std::stack<char> opStack;
+int register_num = 0;
 int words_len = 0;
 
 //read
@@ -153,7 +157,7 @@ void work(){
 		c_get = get_char();
 		return;
 	}
-	if (isalpha(c_get)){
+	if (isalpha(c_get) || c_get == '_'){
 		ti = 0;
 		while (isalpha(c_get) || isdigit(c_get) || c_get == '_'){
 			Token[ti++] = c_get;
@@ -226,7 +230,7 @@ void work(){
 }
 
 
-//初始化 
+//初始化
 void get_in(){
 	c_get = getchar();
 	while (c_get != EOF){
@@ -239,7 +243,7 @@ void get_clear(){    //去注释
 	for (int i = 1; i <= L; i++){
 		if (last && text[i] == '*'){
 			head = i - 1;
-			int end = i + 1,laststar = false;
+			int end = i + 1, laststar = false;
 			for (; end < L; end++){
 				if (laststar && text[end] == '/') break;
 				else if (text[end] == '*') laststar = true;
@@ -269,7 +273,7 @@ void init(){
 	get_clear();
 }
 
-void getsym(){
+void getSym(){
 	init();
 	c_get = get_char();
 	while (c_get != EOF) work();
@@ -277,12 +281,33 @@ void getsym(){
 }
 
 int now = 0;
-node get_next(){
-	if (now < words_len) return words[++now];
-	return node(-1);
+int get_next(){
+	if (now < words_len) {
+        ++now;
+        //printf("%d %d\n",now, words[now].id);
+        return now;
+    } else {
+        return 0;
+    }
 }
 
+void checkFuncPar(){
+    while(words[now].id != 15) {
 
+    }
+}
+
+void emptyRegisterStack(){
+    while (!registerStack.empty()){
+        registerStack.pop();
+    }
+}
+
+void emptyOpStack(){
+    while (!opStack.empty()){
+        opStack.pop();
+    }
+}
 /*int main(){
 	getsym();
 	for (int i = 1; i <= words_len; i++){

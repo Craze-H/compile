@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/Github Desktop/compile/getword.h
+cstdio
+-
+cstdlib
+-
+cctype
+-
+cstring
+-
+queue
+-
+string
+-
+stack
+-
+
+D:/Github Desktop/compile/test.cpp
+getword.h
+D:/Github Desktop/compile/getword.h
+
