@@ -8,6 +8,7 @@ int now_pos;
 int main(){
     freopen("in.txt", "r", stdin);
 	getSym();
+    return 0;
     words[0].id = 0;
 	/*for (int i = 1; i <= words_len; i++){
         printf("%d %d ", i, words[i].id);
@@ -27,11 +28,6 @@ int main(){
 	else {
 		return -2;
 	}
-}
-
-void returnPrint(){
-    printf("\tret i32 %lld\n", words[now_pos + 6].num);
-    printf("}");
 }
 
 bool funcRead(){
