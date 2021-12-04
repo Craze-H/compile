@@ -6,19 +6,19 @@ void calculate();
 void printRegister(int n);
 int now_pos;
 int main(){
-    //freopen("in.txt", "r", stdin);
+    freopen("in.txt", "r", stdin);
 	getSym();
-    printf("\tret i32 0\n");
+    /*printf("\tret i32 0\n");
     printf("}\n");
-    return 0;
+    return 0;*/
     words[0].id = 0;
-	/*for (int i = 1; i <= words_len; i++){
+	for (int i = 1; i <= words_len; i++){
         printf("%d %d ", i, words[i].id);
 		if (words[i].id == 1) printf("%s(%s) ",id_map[words[i].id],words[i].name);
 		else if (words[i].id == 2) printf("%s(%lld) ",id_map[words[i].id],words[i].num);
 		else printf("%s ",id_map[words[i].id]);
         puts("");
-	}*/
+	}
     now_pos = get_next();
 	if(words[now_pos].id == 9){
         now_pos = get_next();
