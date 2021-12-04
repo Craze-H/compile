@@ -6,7 +6,9 @@ void calculate();
 void printRegister(int n);
 int now_pos;
 int main(){
-    //freopen("in.txt", "r", stdin);
+#ifdef LOCAL
+    freopen("in.txt", "r", stdin);
+#endif
 	getSym();
     //return 0;
     /*printf("\tret i32 0\n");
@@ -102,7 +104,7 @@ void Exp(){
                 //printf("COME IN!!!\n");
                 lPar_num--;
                 last_word_key = '0';
-                while (opStack.top() != '('){
+                while (!opStack.empty() && opStack.top() != '('){
                     calculate();
                 }
                 opStack.pop();
@@ -139,7 +141,7 @@ void Exp(){
                 }
             }
         } else if (words[now_pos].id > 21 && words[now_pos].id < 25){
-            while (opStack.top() != '(' && opStack.top() != '+' && opStack.top() != '-'){
+            while (!opStack.empty() && opStack.top() != '(' && opStack.top() != '+' && opStack.top() != '-'){
                 calculate();
             }
             if (now_pos == 0){
