@@ -8,7 +8,7 @@ int now_pos;
 int main(){
     //freopen("in.txt", "r", stdin);
 	getSym();
-    return 0;
+    //return 0;
     /*printf("\tret i32 0\n");
     printf("}\n");
     return 0;*/
