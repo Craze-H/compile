@@ -50,6 +50,9 @@ bool funcRead(){
     if(words[now_pos].id == 16){
         now_pos = get_next();
         checkFunContent();
+        if (now_pos == 0){
+            return false;
+        }
         if (now_pos == words_len){
             return true;
         }
@@ -66,6 +69,9 @@ void checkFunContent(){
         if (words[now_pos].id == 8){
             now_pos = get_next();
             Exp();
+            if (now_pos == 0){
+                return;
+            }
             if (words[now_pos].id == 13){
                 printf("ret i32 ");
                 printRegister(registerStack.top());
@@ -159,6 +165,10 @@ void Exp(){
             last_word_key = '0';
         }
         else{
+            if (lPar_num != 0){
+                now_pos = 0;
+                break;
+            }
             while (!opStack.empty()){
                 calculate();
             }
