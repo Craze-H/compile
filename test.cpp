@@ -6,9 +6,9 @@ void calculate();
 void printRegister(int n);
 int now_pos;
 int main(){
-    //freopen("in.txt", "r", stdin);
+    freopen("in.txt", "r", stdin);
 	getSym();
-    printf("ret i32 0\n");
+    printf("\tret i32 0\n");
     printf("}\n");
     return 0;
     words[0].id = 0;
