@@ -2,6 +2,7 @@
 void checkFunContent();
 bool funcRead();
 void Exp();
+void Stmt();
 void calculate();
 void printRegister(int n);
 int now_pos;
@@ -63,26 +64,30 @@ bool funcRead(){
     return true;
 }
 
+void Stmt(){
+    if (words[now_pos].id == 8){
+        now_pos = get_next();
+        Exp();
+        if (now_pos == 0){
+            return;
+        }
+        if (words[now_pos].id == 13){
+            printf("ret i32 ");
+            printRegister(registerStack.top());
+            puts("");
+            now_pos = get_next();
+        } else{
+            now_pos = 0;
+        }
+    }
+}
+
 void checkFunContent(){
     while (words[now_pos].id != 17){
         if (now_pos == 0){
             return;
         }
-        if (words[now_pos].id == 8){
-            now_pos = get_next();
-            Exp();
-            if (now_pos == 0){
-                return;
-            }
-            if (words[now_pos].id == 13){
-                printf("ret i32 ");
-                printRegister(registerStack.top());
-                puts("");
-                now_pos = get_next();
-            } else{
-                now_pos = 0;
-            }
-        }
+        Stmt();
     }
     printf("}\n");
 }
