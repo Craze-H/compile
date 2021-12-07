@@ -12,9 +12,9 @@ int main(){
 #endif
 	getSym();
     //return 0;
-    /*printf("\tret i32 0\n");
+    printf("\tret i32 0\n");
     printf("}\n");
-    return 0;*/
+    return 0;
     words[0].id = 0;
 	/*for (int i = 1; i <= words_len; i++){
         printf("%d %d ", i, words[i].id);

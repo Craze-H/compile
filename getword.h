@@ -232,12 +232,12 @@ void work(){
 
 //≥ı ºªØ
 void get_in(){
-    //printf("declare void @putch(i32)\ndefine i32 @main(){\n");
+    printf("declare void @putch(i32)\ndefine i32 @main(){\n");
 	c_get = getchar();
 	while (c_get != EOF){
-        /*if (c_get == '\n'){
+        if (c_get == '\n'){
             printf(" ");
-        }else{printf("%c",c_get);}*/
+        }else{printf("%c",c_get);}
 		text[++L] = c_get;
         //printf("\tcall void @putch(i32 %d)\n",(int)c_get);
 		c_get = getchar();
