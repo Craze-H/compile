@@ -5,6 +5,7 @@
 #include<queue>
 #include<string>
 #include<stack>
+#include<vector>
 #define LL long long int
 char text[10005];
 char c_get,Token[10005];
@@ -74,12 +75,13 @@ struct node{
 	}
 	node(int id,const char* name){
 		this->id = id;
-		this->name = new char[20];
+		this->name = new char[1005];
 		strcpy(this->name,name);
 	}
 }words[100005];
 std::stack<int> registerStack;
 std::stack<char> opStack;
+
 int register_num = 0;
 int words_len = 0;
 

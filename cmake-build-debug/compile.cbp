@@ -87,6 +87,9 @@
 		<Unit filename="D:/Github Desktop/compile/getword.h">
 			<Option target="compile"/>
 		</Unit>
+		<Unit filename="D:/Github Desktop/compile/register.h">
+			<Option target="compile"/>
+		</Unit>
 		<Unit filename="D:/Github Desktop/compile/test.cpp">
 			<Option target="compile"/>
 		</Unit>

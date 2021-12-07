@@ -3,4 +3,5 @@
 
 CMakeFiles/compile.dir/test.cpp.obj: \
  ../getword.h \
+ ../register.h \
  ../test.cpp

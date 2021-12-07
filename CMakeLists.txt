@@ -7,4 +7,4 @@ include_directories(.)
 add_definitions(-DLOCAL)
 add_executable(compile
         getword.h
-        test.cpp)
+        test.cpp register.h)

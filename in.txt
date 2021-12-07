@@ -1,1 +1,5 @@
-int main() { return 5 / 10 * 2; }
+int main() {
+    int n = getint();
+    putint(n + 4);
+    return 0;
+}
