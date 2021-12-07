@@ -1,5 +1,5 @@
 FROM gcc:10.2
 WORKDIR /app/
-COPY test.cpp getword.h ./
+COPY test.cpp register.h getword.h ./
 RUN g++ test.cpp -o test
 RUN chmod +x test
