@@ -1,5 +1,5 @@
 int main() {
-    int a = getint();
-    putint();
+    int n = getint();
+    putint(n + 4);
     return 0;
 }

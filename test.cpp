@@ -315,7 +315,8 @@ void Exp(){
                         return;
                     }
                     found = true;
-                    registerStack.push(lVarVector[i].register_order);
+                    printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
+                    registerStack.push(register_num);
                     break;
                 }
             }
