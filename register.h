@@ -7,7 +7,7 @@ struct lVarNode{
     int constValue{};
     lVarNode(int register_order,const char* name, const char* type, bool isConst){
         this->register_order = register_order;
-        this->name = new char [1005];
+        this->name = new char [strlen(name) + 1];
         strcpy(this->name, name);
         this->type = new char [5];
         strcpy(this->type, type);
@@ -15,7 +15,7 @@ struct lVarNode{
     }
     lVarNode(int register_order,const char* name, const char* type, bool isConst, int constValue){
         this->register_order = register_order;
-        this->name = new char [1005];
+        this->name = new char [strlen(name) + 1];
         this->constValue = constValue;
         strcpy(this->name, name);
         this->type = new char [5];
