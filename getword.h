@@ -154,83 +154,109 @@ void get_number(){
 	if (flag) words[++words_len] = node(2,num,1);//printf("Number(%lld)\n",num);
 	else words[++words_len] = node(0);//puts("Err");
 }
-void work(){
-	if (c_get == ' ' || c_get == '\n' || c_get == '\r' || c_get == '\t'){
-		c_get = get_char();
-		return;
-	}
-	if (isalpha(c_get) || c_get == '_'){
-		ti = 0;
-		while (isalpha(c_get) || isdigit(c_get) || c_get == '_'){
-			Token[ti++] = c_get;
-			c_get = get_char();
-		}
-		checkToken();
-		return;
-	}
-	else if (isdigit(c_get)){
-		get_number();
-		return;
-	}
-	else if (c_get == '='){
-		c_get = get_char();
-		if (c_get == '=') words[++words_len] = node(29);//puts("Eq");
-		else {
-			words[++words_len] = node(12);//puts("Assign");
-			return;
-		}
-	}
-	else if (c_get == '!'){
-		c_get = get_char();
-		if (c_get == '=') words[++words_len] = node(34);//puts("Ne");
-		else {
-			words[++words_len] = node(27);//puts("Not");
-			return;
-		}
-	}
-	else if (c_get == '>'){
-		c_get = get_char();
-		if (c_get == '=') words[++words_len] = node(32);//puts("Ge");
-		else {
-			words[++words_len] = node(25);//puts("Gt");
-			return;
-		}
-	}
-	else if (c_get == '<'){
-		c_get = get_char();
-		if (c_get == '=') words[++words_len] = node(33);//puts("Le");
-		else {
-			words[++words_len] = node(26);//puts("Lt");
-			return;
-		}
-	}
-	else if (c_get == '&'){
-		c_get = get_char();
-		if (c_get == '&') words[++words_len] = node(30);//puts("And");
-		else words[++words_len] = node(0);//puts("Err");
-	}
-	else if (c_get == '|'){
-		c_get = get_char();
-		if (c_get == '|') words[++words_len] = node(31);//puts("Or");
-		else words[++words_len] = node(0);//puts("Err");
-	}
-	else if (c_get == ';') words[++words_len] = node(13);//puts("Semicolon");
-	else if (c_get == '(') words[++words_len] = node(14);//puts("LPar");
-	else if (c_get == ')') words[++words_len] = node(15);//puts("RPar");
-	else if (c_get == '{') words[++words_len] = node(16);//puts("LBrace");
-	else if (c_get == '}') words[++words_len] = node(17);//puts("RBrace");
-	else if (c_get == '[') words[++words_len] = node(18);//puts("Lbra");
-	else if (c_get == ']') words[++words_len] = node(19);//puts("Rbra");
-	else if (c_get == '+') words[++words_len] = node(20);//puts("Plus");
-	else if (c_get == '-') words[++words_len] = node(21);//puts("Minus");
-	else if (c_get == '*') words[++words_len] = node(22);//puts("Mult");
-	else if (c_get == '/') words[++words_len] = node(23);//puts("Div");
-	else if (c_get == '%') words[++words_len] = node(24);//puts("Remain");
-	else if (c_get == ',') words[++words_len] = node(28);//puts("Comma");
-	else words[++words_len] = node(0);//puts("Err");
-	c_get = get_char();
+void get_ident(){
+    if (isdigit(c_get)){
+        get_number();
+        return;
+    }
+    if (isalpha(c_get) || c_get == '_'){
+        ti = 0;
+        while (isalpha(c_get) || isdigit(c_get) || c_get == '_'){
+            Token[ti++] = c_get;
+            c_get = get_char();
+        }
+        checkToken();
+        return;
+    }
+    switch (c_get) {
+        case ' ':
+        case '\n':
+        case '\r':
+        case '\t':
+            c_get = get_char();
+            return;
+        case '=':
+            c_get = get_char();
+            if (c_get == '=') words[++words_len] = node(29);//Eq
+            else {
+                words[++words_len] = node(12);//Assign
+                return;
+            }
+        case '!':
+            c_get = get_char();
+            if (c_get == '=') words[++words_len] = node(34);//Ne
+            else {
+                words[++words_len] = node(27);//Not
+                return;
+            }
+        case '>':
+            c_get = get_char();
+            if (c_get == '=') words[++words_len] = node(32);//Ge
+            else {
+                words[++words_len] = node(25);//Gt
+                return;
+            }
+        case '<':
+            c_get = get_char();
+            if (c_get == '=') words[++words_len] = node(33);//Le"
+            else {
+                words[++words_len] = node(26);//Lt
+                return;
+            }
+        case '&':
+            c_get = get_char();
+            if (c_get == '&') words[++words_len] = node(30);//And
+            else words[++words_len] = node(0);//Err
+            break;
+        case '|':
+            c_get = get_char();
+            if (c_get == '|') words[++words_len] = node(31);//Or
+            else words[++words_len] = node(0);
+            break;
+        case ';':
+            words[++words_len] = node(13);//Semicolon
+            break;
+        case '(':
+            words[++words_len] = node(14);//LPar
+            break;
+        case ')':
+            words[++words_len] = node(15);//RPar
+            break;
+        case '{':
+            words[++words_len] = node(16);//LBrace
+            break;
+        case '}':
+            words[++words_len] = node(17);//RBrace
+            break;
+        case '[':
+            words[++words_len] = node(18);//LBra
+            break;
+        case ']':
+            words[++words_len] = node(19);//RBra
+            break;
+        case '+':
+            words[++words_len] = node(20);//Plus
+            break;
+        case '-':
+            words[++words_len] = node(21);//Minus
+            break;
+        case '*':
+            words[++words_len] = node(22);//Mult
+            break;
+        case '/':
+            words[++words_len] = node(23);//Div
+            break;
+        case '%':
+            words[++words_len] = node(24);//Remain
+            break;
+        case ',':
+            words[++words_len] = node(28);//Comma
+            break;
+        default:
+            words[++words_len] = node(0);
+    }
+    c_get = get_char();
 }
-
 
 //³õÊ¼»¯
 void get_in(){
@@ -283,7 +309,7 @@ void init(){
 void getSym(){
 	init();
 	c_get = get_char();
-	while (c_get != EOF) work();
+	while (c_get != EOF) get_ident();
 	words[++words_len].id = -1;
 }
 
