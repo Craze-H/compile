@@ -7,8 +7,8 @@
 #include<stack>
 #include<vector>
 #define LL long long int
-char text[10005];
-char c_get,Token[10005];
+char text[100005];
+char c_get,Token[100005];
 int pos = 0,L = 0;
 int ti = 0;
 char keyWord[][20]={"if","else","while","break","continue","return","int","void","const"};//keyWord 
