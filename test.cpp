@@ -80,7 +80,27 @@ void Stmt(){
         if (reservedMode != -1){
             reservedFunc(reservedMode);
         } else {
-            Exp();
+            int lVarVector_pos = getLVar(words[now_pos].name);
+            int tmp_pos = now_pos;
+            now_pos = get_next();
+            if (words[now_pos].id == 12){
+                if (lVarVector[lVarVector_pos].isConst){
+                    now_pos = -1;
+                    return;
+                }
+                now_pos = get_next();
+                Exp();
+                if (now_pos <= 0){
+                    return;
+                }
+                printf("store i32 ");
+                printRegister(registerStack.top());
+                registerStack.pop();
+                printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+            } else{
+                now_pos = tmp_pos;
+                Exp();
+            }
         }
     }
     if (words[now_pos].id == 13){
@@ -101,6 +121,7 @@ void checkFunContent(){
             if (words[now_pos].id == 9){
                 now_pos = get_next();
                 Decl();
+                constFlag = false;
             }
         } else if (words[now_pos].id == 9){
             constFlag = false;
@@ -127,7 +148,8 @@ void Decl(){
                 storeFlag = true;
                 now_pos = get_next();
                 Exp();
-            } else if (words[now_pos].id == 28){
+            }// else
+            if (words[now_pos].id == 28){
                 lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
                 printf("%%%d = alloca i32\n", register_num);
                 if (storeFlag){
@@ -163,6 +185,7 @@ void reservedFunc(int reservedMode){
         case 1:
             if (words[now_pos].id == 14){
                 now_pos = get_next();
+                //opStack.push('(');
                 if (words[now_pos].id == 15){
                     printf("%%%d = call i32 @%s()\n", ++register_num, reserved[reservedMode]);
                     registerStack.push(register_num);
@@ -176,6 +199,7 @@ void reservedFunc(int reservedMode){
         case 4:
             if (words[now_pos].id == 14){
                 now_pos = get_next();
+                opStack.push('(');
                 Exp();
                 if (now_pos <= 0){
                     return;
@@ -222,7 +246,7 @@ void Exp(){
                 break;
             }
         } else if (words[now_pos].id == 20 || words[now_pos].id == 21){
-            if (last_word_key != '0'){
+            if (last_word_key != '0' && last_word_key != '1'){
                 if (words[now_pos].id == 20){
                     last_word_key = '+';
                     opStack.push('#');
@@ -292,6 +316,7 @@ void Exp(){
                     }
                     found = true;
                     registerStack.push(lVarVector[i].register_order);
+                    break;
                 }
             }
             if (!found){

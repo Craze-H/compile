@@ -28,13 +28,13 @@ bool constFlag = false;
 bool storeFlag = false;
 char reserved[][10] = {"getint","getch","getarray","putint","putch","putarray"};
 
-int getLVar(int register_order);
+int getLVar(char* name);
 bool checkRepeat(int tmp_pos);
 int checkReserved(char* ident_name);
 
-int getLVar(int register_order){
+int getLVar(char* name){
     for (int i = lVarVector.size() - 1; i >= 0 ; --i) {
-        if (lVarVector[i].register_order == register_order){
+        if (strcmp(lVarVector[i].name, name) == 0){
             return i;
         }
     }
