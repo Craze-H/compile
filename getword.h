@@ -75,7 +75,7 @@ struct node{
 	}
 	node(int id,const char* name){
 		this->id = id;
-		this->name = new char[1005];
+		this->name = new char[strlen(name) + 1];
 		strcpy(this->name,name);
 	}
 }words[100005];
