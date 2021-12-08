@@ -8,6 +8,7 @@ void printRegister(int n);
 void Decl();
 void reservedFunc(int reservedMode);
 int now_pos;
+int lPar_num = 0;
 int main(){
 #ifdef LOCAL
     freopen("in.txt", "r", stdin);
@@ -200,18 +201,19 @@ void reservedFunc(int reservedMode){
             if (words[now_pos].id == 14){
                 now_pos = get_next();
                 opStack.push('(');
+                lPar_num++;
                 Exp();
                 if (now_pos <= 0){
                     return;
-                } else{
-                    if (words[now_pos].id == 15){
+                } /*else{
+                    if (words[now_pos].id == 15){*/
                         printf("call void @%s(i32 ", reserved[reservedMode]);
                         printRegister(registerStack.top());
                         printf(")\n");
-                        now_pos = get_next();
+                        //now_pos = get_next();
                         return;
-                    }
-                }
+                    /*}
+                }*/
             }
             now_pos = -1;
             return;
@@ -223,7 +225,6 @@ void reservedFunc(int reservedMode){
 
 void Exp(){
     char last_word_key = 0;
-    int lPar_num = 0;
     while (true){
         if (words[now_pos].id == 14){
             lPar_num++;
