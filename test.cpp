@@ -20,6 +20,7 @@ int main(){
     freopen("in.txt", "r", stdin);
 #endif
 	getSym();
+    typeStack.emplace_back(0);
     /*for (int i = 1; i <= words_len; i++){
         if (words[i].id == 1) printf("%s(%s) ",id_map[words[i].id],words[i].name);
         else if (words[i].id == 2) printf("%s(%lld) ",id_map[words[i].id],words[i].num);
@@ -97,12 +98,22 @@ void Stmt(){
                 return;
             }
             if (words[now_pos].id == 15){
+                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
+                    printf("%%%d = zext i32 ", ++register_num);
+                    printRegister(registerStack.top());
+                    registerStack.pop();
+                    registerStack.push(register_num);
+                    printf(" to i1\n");
+                    typeStack.emplace_back(1);
+                }
                 judgeStack.emplace_back(++judge_num);
                 printf("br i1 %%%d, label %%%d, label %%else%d\n\n", registerStack.top(), ++register_num, judgeStack.back());
+                typeStack.emplace_back(0);
                 printf("%d:\n", register_num);
                 now_pos = get_next();
                 Stmt();
                 printf("br label %%%d\n\n", ++register_num);
+                typeStack.emplace_back(0);
                 int else_flag = register_num;
                 printf("else%d:\n", judgeStack.back());
                 if (words[now_pos].id == 4){
@@ -183,6 +194,7 @@ void LOrExp(){
         registerStack.pop();
         puts("");
         registerStack.push(register_num);
+        typeStack.emplace_back(1);
     }
 }
 
@@ -202,6 +214,7 @@ void LAndExp(){
         registerStack.pop();
         puts("");
         registerStack.push(register_num);
+        typeStack.emplace_back(1);
     }
 }
 
@@ -228,6 +241,7 @@ void EqExp(){
         registerStack.pop();
         puts("");
         registerStack.push(register_num);
+        typeStack.emplace_back(1);
     }
 }
 
@@ -267,6 +281,7 @@ void RelExp(){
     registerStack.pop();
     puts("");
     registerStack.push(register_num);
+    typeStack.emplace_back(1);
 }
 
 void BlockItem(){
@@ -313,6 +328,7 @@ void Decl(){
             }// else
             if (words[now_pos].id == 28){
                 lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
+                typeStack.emplace_back(32);
                 printf("%%%d = alloca i32\n", register_num);
                 if (storeFlag){
                     printf("store i32 ");
@@ -329,6 +345,7 @@ void Decl(){
         }
     }
     lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
+    typeStack.emplace_back(32);
     printf("%%%d = alloca i32\n", register_num);
     if (storeFlag){
         printf("store i32 ");
@@ -351,6 +368,7 @@ void reservedFunc(int reservedMode){
                 if (words[now_pos].id == 15){
                     printf("%%%d = call i32 @%s()\n", ++register_num, reserved[reservedMode]);
                     registerStack.push(register_num);
+                    typeStack.emplace_back(32);
                     now_pos = get_next();
                     return;
                 }
@@ -411,10 +429,9 @@ void Exp(){
                 opStack.pop();
             } else{
                 //judge finish
-                if (opStack.empty()){
-                    break;
+                while (!opStack.empty()){
+                    calculate();
                 }
-                calculate();
                 break;
             }
         } else if (words[now_pos].id == 20 || words[now_pos].id == 21){
@@ -489,6 +506,7 @@ void Exp(){
                     found = true;
                     printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
                     registerStack.push(register_num);
+                    typeStack.emplace_back(32);
                     break;
                 }
             }
@@ -503,6 +521,7 @@ void Exp(){
                 break;
             }
             while (!opStack.empty()){
+                //printf("!!!%c, %d\n", opStack.top(), opStack.size());
                 calculate();
             }
             break;
@@ -517,20 +536,42 @@ void Exp(){
 
 void calculate(){
     char op = opStack.top();
-    //printf("%c\n", op);
+    //printf("!!!%c, %d\n", op, opStack.size());
     opStack.pop();
     if (!registerStack.empty()){
         if (op == '#' || op == '$' || op == '!'){
+            if (op == '!'){
+                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
+                    printf("%%%d = zext i32 ", ++register_num);
+                    printRegister(registerStack.top());
+                    registerStack.pop();
+                    registerStack.push(register_num);
+                    printf(" to i1\n");
+                    typeStack.emplace_back(1);
+                }
+            } else{
+                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 1){
+                    printf("%%%d = zext i1 ", ++register_num);
+                    printRegister(registerStack.top());
+                    registerStack.pop();
+                    registerStack.push(register_num);
+                    printf(" to i32\n");
+                    typeStack.emplace_back(1);
+                }
+            }
             printf("%%%d = ", ++register_num);
             if (op == '#'){
                 printf("add");
                 printf(" i32 0, ");
+                typeStack.emplace_back(32);
             } else if (op == '$'){
                 printf("sub");
                 printf(" i32 0, ");
+                typeStack.emplace_back(32);
             } else{
                 printf("icmp eq");
                 printf(" i1 0, ");
+                typeStack.emplace_back(1);
             }
             printRegister(registerStack.top());
             puts("");
@@ -566,6 +607,7 @@ void calculate(){
                 printRegister(n1);
                 puts("");
                 registerStack.push(register_num);
+                typeStack.emplace_back(32);
             } else{
                 now_pos = 0;
             }

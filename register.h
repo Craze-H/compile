@@ -25,6 +25,7 @@ struct lVarNode{
 };
 std::vector<lVarNode>lVarVector;
 std::vector<int>judgeStack;
+std::vector<int>typeStack;
 bool constFlag = false;
 bool storeFlag = false;
 int register_num = 0;
