@@ -18,13 +18,14 @@ int lBrace_num = 0;
 int main(){
 #ifdef LOCAL
     freopen("in.txt", "r", stdin);
+    setbuf(stdout, nullptr);
 #endif
 	getSym();
     typeStack.emplace_back(0);
     /*for (int i = 1; i <= words_len; i++){
-        if (words[i].id == 1) printf("%s(%s) ",id_map[words[i].id],words[i].name);
-        else if (words[i].id == 2) printf("%s(%lld) ",id_map[words[i].id],words[i].num);
-        else printf("%s ",id_map[words[i].id]);
+        if (words[i].id == 1) printf("%d %s(%s) \n", i, id_map[words[i].id],words[i].name);
+        else if (words[i].id == 2) printf("%d %s(%lld) \n", i, id_map[words[i].id],words[i].num);
+        else printf("%d %s \n", i, id_map[words[i].id]);
     }*/
     words[0].id = 0;
     emptyRegisterStack();
@@ -176,17 +177,18 @@ void Stmt(){
 
 void Cond(){
     LOrExp();
-
+    if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
+        printf("%%%d = icmp eq i32 1, ", ++register_num);
+        typeStack.emplace_back(1);
+        printRegister(registerStack.top());
+        puts("");
+        registerStack.pop();
+        registerStack.push(register_num);
+    }
 }
 
 void LOrExp(){
     LAndExp();
-    printf("%%%d = icmp eq i32 1, ", ++register_num);
-    typeStack.emplace_back(1);
-    printRegister(registerStack.top());
-    puts("");
-    registerStack.pop();
-    registerStack.push(register_num);
     if (now_pos <= 0){
         return;
     }
@@ -575,7 +577,7 @@ void calculate(){
                     registerStack.pop();
                     registerStack.push(register_num);
                     printf(" to i32\n");
-                    typeStack.emplace_back(1);
+                    typeStack.emplace_back(32);
                 }
             }
         } else{
