@@ -98,30 +98,30 @@ void Stmt(){
                 return;
             }
             if (words[now_pos].id == 15){
-                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
+                /*if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
                     printf("%%%d = zext i32 ", ++register_num);
                     printRegister(registerStack.top());
                     registerStack.pop();
                     registerStack.push(register_num);
                     printf(" to i1\n");
                     typeStack.emplace_back(1);
-                }
+                }*/
                 judgeStack.emplace_back(++judge_num);
                 printf("br i1 %%%d, label %%%d, label %%else%d\n\n", registerStack.top(), ++register_num, judgeStack.back());
                 typeStack.emplace_back(0);
                 printf("%d:\n", register_num);
                 now_pos = get_next();
                 Stmt();
-                printf("br label %%%d\n\n", ++register_num);
-                typeStack.emplace_back(0);
+                printf("br label %%if%d\n\n", judgeStack.back());
                 int else_flag = register_num;
                 printf("else%d:\n", judgeStack.back());
                 if (words[now_pos].id == 4){
                     now_pos = get_next();
                     Stmt();
                 }
-                printf("br label %%%d\n\n", else_flag);
-                printf("%%%d:\n", else_flag);
+                printf("br label %%if%d\n\n", judgeStack.back());
+                printf("if%d:\n", judgeStack.back());
+                judgeStack.pop_back();
             } else{
                 now_pos = -2;
             }
@@ -176,10 +176,17 @@ void Stmt(){
 
 void Cond(){
     LOrExp();
+
 }
 
 void LOrExp(){
     LAndExp();
+    printf("%%%d = icmp eq i32 1, ", ++register_num);
+    typeStack.emplace_back(1);
+    printRegister(registerStack.top());
+    puts("");
+    registerStack.pop();
+    registerStack.push(register_num);
     if (now_pos <= 0){
         return;
     }
@@ -540,25 +547,6 @@ void calculate(){
     opStack.pop();
     if (!registerStack.empty()){
         if (op == '#' || op == '$' || op == '!'){
-            if (op == '!'){
-                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
-                    printf("%%%d = zext i32 ", ++register_num);
-                    printRegister(registerStack.top());
-                    registerStack.pop();
-                    registerStack.push(register_num);
-                    printf(" to i1\n");
-                    typeStack.emplace_back(1);
-                }
-            } else{
-                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 1){
-                    printf("%%%d = zext i1 ", ++register_num);
-                    printRegister(registerStack.top());
-                    registerStack.pop();
-                    registerStack.push(register_num);
-                    printf(" to i32\n");
-                    typeStack.emplace_back(1);
-                }
-            }
             printf("%%%d = ", ++register_num);
             if (op == '#'){
                 printf("add");
@@ -570,13 +558,26 @@ void calculate(){
                 typeStack.emplace_back(32);
             } else{
                 printf("icmp eq");
-                printf(" i1 0, ");
+                printf(" i32 0, ");
                 typeStack.emplace_back(1);
+                /*if (!typeStack.empty()){
+                    printf("??%d %d\n", registerStack.top(), typeStack[10]);
+                }*/
             }
             printRegister(registerStack.top());
             puts("");
             registerStack.pop();
             registerStack.push(register_num);
+            if (op == '!'){
+                if (registerStack.top() > 0 && typeStack[registerStack.top()] == 1){
+                    printf("%%%d = zext i1 ", ++register_num);
+                    printRegister(registerStack.top());
+                    registerStack.pop();
+                    registerStack.push(register_num);
+                    printf(" to i32\n");
+                    typeStack.emplace_back(1);
+                }
+            }
         } else{
             if (registerStack.size() >= 2){
                 printf("%%%d = ", ++register_num);
