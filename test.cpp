@@ -1,5 +1,5 @@
 #include "register.h"
-void checkFunContent();
+void BlockItem();
 bool funcRead();
 void Exp();
 void Stmt();
@@ -7,13 +7,24 @@ void calculate();
 void printRegister(int n);
 void Decl();
 void reservedFunc(int reservedMode);
+void Cond();
+void LOrExp();
+void LAndExp();
+void EqExp();
+void RelExp();
 int now_pos;
 int lPar_num = 0;
+int lBrace_num = 0;
 int main(){
 #ifdef LOCAL
     freopen("in.txt", "r", stdin);
 #endif
 	getSym();
+    /*for (int i = 1; i <= words_len; i++){
+        if (words[i].id == 1) printf("%s(%s) ",id_map[words[i].id],words[i].name);
+        else if (words[i].id == 2) printf("%s(%lld) ",id_map[words[i].id],words[i].num);
+        else printf("%s ",id_map[words[i].id]);
+    }*/
     words[0].id = 0;
     emptyRegisterStack();
     emptyOpStack();
@@ -28,6 +39,9 @@ int main(){
         now_pos = get_next();
         if (!funcRead()) {
             return now_pos - 1;
+        }
+        if (now_pos == words_len){
+            printf("}\n");
         }
 		return 0;
 	}
@@ -53,7 +67,8 @@ bool funcRead(){
     }
     if(words[now_pos].id == 16){
         now_pos = get_next();
-        checkFunContent();
+        lBrace_num++;
+        BlockItem();
         if (now_pos <= 0){
             return false;
         }
@@ -66,57 +81,204 @@ bool funcRead(){
 }
 
 void Stmt(){
-    if (words[now_pos].id == 8){
+    if (words[now_pos].id == 16){
+        lBrace_num++;
         now_pos = get_next();
-        Exp();
+        BlockItem();
         if (now_pos <= 0){
             return;
         }
-        printf("ret i32 ");
-        printRegister(registerStack.top());
-        puts("");
-        register_num++;
-    } else if (words[now_pos].id == 1){
-        int reservedMode = checkReserved(words[now_pos].name);
-        if (reservedMode != -1){
-            reservedFunc(reservedMode);
-        } else {
-            int lVarVector_pos = getLVar(words[now_pos].name);
-            int tmp_pos = now_pos;
+    } else if (words[now_pos].id == 3){
+        now_pos = get_next();
+        if (words[now_pos].id == 14){
             now_pos = get_next();
-            if (words[now_pos].id == 12){
-                if (lVarVector[lVarVector_pos].isConst){
-                    now_pos = -1;
-                    return;
-                }
+            Cond();
+            if (now_pos <= 0){
+                return;
+            }
+            if (words[now_pos].id == 15){
+                judgeStack.emplace_back(++judge_num);
+                printf("br i1 %%%d, label %%%d, label %%else%d\n\n", registerStack.top(), ++register_num, judgeStack.back());
+                printf("%d:\n", register_num);
                 now_pos = get_next();
-                Exp();
-                if (now_pos <= 0){
-                    return;
+                Stmt();
+                printf("br label %%%d\n\n", ++register_num);
+                int else_flag = register_num;
+                printf("else%d:\n", judgeStack.back());
+                if (words[now_pos].id == 4){
+                    now_pos = get_next();
+                    Stmt();
                 }
-                printf("store i32 ");
-                printRegister(registerStack.top());
-                registerStack.pop();
-                printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+                printf("br label %%%d\n\n", else_flag);
+                printf("%%%d:\n", else_flag);
             } else{
-                now_pos = tmp_pos;
-                Exp();
+                now_pos = -2;
             }
         }
-    }
-    if (words[now_pos].id == 13){
-        now_pos = get_next();
     } else{
-        now_pos = 0;
+        if (words[now_pos].id == 8){
+            now_pos = get_next();
+            Exp();
+            if (now_pos <= 0){
+                return;
+            }
+            printf("ret i32 ");
+            printRegister(registerStack.top());
+            puts("");
+            register_num++;
+        } else if (words[now_pos].id == 1){
+            int reservedMode = checkReserved(words[now_pos].name);
+            if (reservedMode != -1){
+                reservedFunc(reservedMode);
+            } else {
+                int lVarVector_pos = getLVar(words[now_pos].name);
+                int tmp_pos = now_pos;
+                now_pos = get_next();
+                if (words[now_pos].id == 12){
+                    if (lVarVector[lVarVector_pos].isConst){
+                        now_pos = -1;
+                        return;
+                    }
+                    now_pos = get_next();
+                    Exp();
+                    if (now_pos <= 0){
+                        return;
+                    }
+                    printf("store i32 ");
+                    printRegister(registerStack.top());
+                    registerStack.pop();
+                    printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+                } else{
+                    now_pos = tmp_pos;
+                    Exp();
+                }
+            }
+        }
+        if (words[now_pos].id == 13){
+            now_pos = get_next();
+        } else{
+            now_pos = 0;
+        }
+    }
+
+}
+
+void Cond(){
+    LOrExp();
+}
+
+void LOrExp(){
+    LAndExp();
+    if (now_pos <= 0){
+        return;
+    }
+    if (words[now_pos].id == 31){
+        now_pos = get_next();
+        LOrExp();
+        printf("%%%d = or i1 ", ++register_num);
+        printRegister(registerStack.top());
+        registerStack.pop();
+        printf(", ");
+        printRegister(registerStack.top());
+        registerStack.pop();
+        puts("");
+        registerStack.push(register_num);
     }
 }
 
-void checkFunContent(){
-    while (words[now_pos].id != 17){
+void LAndExp(){
+    EqExp();
+    if (now_pos <= 0){
+        return;
+    }
+    if (words[now_pos].id == 30){
+        now_pos = get_next();
+        LAndExp();
+        printf("%%%d = and i1 ", ++register_num);
+        printRegister(registerStack.top());
+        registerStack.pop();
+        printf(", ");
+        printRegister(registerStack.top());
+        registerStack.pop();
+        puts("");
+        registerStack.push(register_num);
+    }
+}
+
+void EqExp(){
+    RelExp();
+    if (now_pos <= 0){
+        return;
+    }
+    if (words[now_pos].id == 29 || words[now_pos].id == 34){
+        int tmp_pos = now_pos;
+        now_pos = get_next();
+        EqExp();
+        printf("%%%d = icmp ", ++register_num);
+        if (words[tmp_pos].id == 29){
+            printf("eq");
+        } else{
+            printf("ne");
+        }
+        printf(" i32 ");
+        printRegister(registerStack.top());
+        registerStack.pop();
+        printf(", ");
+        printRegister(registerStack.top());
+        registerStack.pop();
+        puts("");
+        registerStack.push(register_num);
+    }
+}
+
+void RelExp(){
+    Exp();
+    if (now_pos <= 0){
+        return;
+    }
+    int tmp_pos = now_pos;
+    if (words[now_pos].id != 25 && words[now_pos].id != 26 &&words[now_pos].id != 32 && words[now_pos].id != 33){
+        return;
+    }
+    now_pos = get_next();
+    EqExp();
+    printf("%%%d = icmp ", ++register_num);
+    switch (words[tmp_pos].id) {
+        case 25:
+            printf("sgt");
+            break;
+        case 26:
+            printf("slt");
+            break;
+        case 32:
+            printf("sge");
+            break;
+        case 33:
+            printf("sle");
+            break;
+        default:
+            return;
+    }
+    printf(" i32 ");
+    printRegister(registerStack.top());
+    registerStack.pop();
+    printf(", ");
+    printRegister(registerStack.top());
+    registerStack.pop();
+    puts("");
+    registerStack.push(register_num);
+}
+
+void BlockItem(){
+    while (lBrace_num != 0){
         if (now_pos <= 0){
             return;
         }
-        if (words[now_pos].id == 11){
+        if (words[now_pos].id == 17){
+            lBrace_num--;
+            now_pos = get_next();
+            break;
+        } else if (words[now_pos].id == 11){
             constFlag = true;
             now_pos = get_next();
             if (words[now_pos].id == 9){
@@ -132,7 +294,6 @@ void checkFunContent(){
             Stmt();
         }
     }
-    printf("}\n");
 }
 
 void Decl(){
@@ -226,7 +387,14 @@ void reservedFunc(int reservedMode){
 void Exp(){
     char last_word_key = 0;
     while (true){
-        if (words[now_pos].id == 14){
+        if (words[now_pos].id == 27){
+            if (last_word_key == '0' || last_word_key == '1'){
+                now_pos = -2;
+                return;
+            }
+            last_word_key = '!';
+            opStack.push('!');
+        } else if (words[now_pos].id == 14){
             lPar_num++;
             //printf("lPar_num: %d\n",lPar_num);
             last_word_key = '(';
@@ -243,6 +411,9 @@ void Exp(){
                 opStack.pop();
             } else{
                 //judge finish
+                if (opStack.empty()){
+                    break;
+                }
                 calculate();
                 break;
             }
@@ -274,7 +445,7 @@ void Exp(){
                 }
             }
         } else if (words[now_pos].id > 21 && words[now_pos].id < 25){
-            while (!opStack.empty() && opStack.top() != '(' && opStack.top() != '+' && opStack.top() != '-'){
+            while (!opStack.empty() && opStack.top() != '(' && opStack.top() != '+' && opStack.top() != '-' && opStack.top() != '!'){
                 calculate();
             }
             if (now_pos <= 0){
@@ -349,12 +520,14 @@ void calculate(){
     //printf("%c\n", op);
     opStack.pop();
     if (!registerStack.empty()){
-        if (op == '#' || op == '$'){
+        if (op == '#' || op == '$' || op == '!'){
             printf("%%%d = ", ++register_num);
             if (op == '#'){
                 printf("add");
-            } else{
+            } else if (op == '$'){
                 printf("sub");
+            } else{
+                printf("icmp eq");
             }
             printf(" i32 0, ");
             printRegister(registerStack.top());

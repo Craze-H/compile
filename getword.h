@@ -82,7 +82,6 @@ struct node{
 std::stack<int> registerStack;
 std::stack<char> opStack;
 
-int register_num = 0;
 int words_len = 0;
 
 //read
@@ -182,6 +181,7 @@ void get_ident(){
                 words[++words_len] = node(12);//Assign
                 return;
             }
+            break;
         case '!':
             c_get = get_char();
             if (c_get == '=') words[++words_len] = node(34);//Ne
@@ -189,6 +189,7 @@ void get_ident(){
                 words[++words_len] = node(27);//Not
                 return;
             }
+            break;
         case '>':
             c_get = get_char();
             if (c_get == '=') words[++words_len] = node(32);//Ge
@@ -196,6 +197,7 @@ void get_ident(){
                 words[++words_len] = node(25);//Gt
                 return;
             }
+            break;
         case '<':
             c_get = get_char();
             if (c_get == '=') words[++words_len] = node(33);//Le"
@@ -203,6 +205,7 @@ void get_ident(){
                 words[++words_len] = node(26);//Lt
                 return;
             }
+            break;
         case '&':
             c_get = get_char();
             if (c_get == '&') words[++words_len] = node(30);//And

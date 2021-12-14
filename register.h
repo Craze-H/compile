@@ -24,8 +24,11 @@ struct lVarNode{
     }
 };
 std::vector<lVarNode>lVarVector;
+std::vector<int>judgeStack;
 bool constFlag = false;
 bool storeFlag = false;
+int register_num = 0;
+int judge_num = 0;
 char reserved[][10] = {"getint","getch","getarray","putint","putch","putarray"};
 
 int getLVar(char* name);
