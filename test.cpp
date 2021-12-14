@@ -268,16 +268,16 @@ void RelExp(){
     printf("%%%d = icmp ", ++register_num);
     switch (words[tmp_pos].id) {
         case 25:
-            printf("sgt");
-            break;
-        case 26:
             printf("slt");
             break;
+        case 26:
+            printf("sgt");
+            break;
         case 32:
-            printf("sge");
+            printf("sle");
             break;
         case 33:
-            printf("sle");
+            printf("sge");
             break;
         default:
             return;
