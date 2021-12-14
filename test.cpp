@@ -524,12 +524,14 @@ void calculate(){
             printf("%%%d = ", ++register_num);
             if (op == '#'){
                 printf("add");
+                printf(" i32 0, ");
             } else if (op == '$'){
                 printf("sub");
+                printf(" i32 0, ");
             } else{
                 printf("icmp eq");
+                printf(" i1 0, ");
             }
-            printf(" i32 0, ");
             printRegister(registerStack.top());
             puts("");
             registerStack.pop();
