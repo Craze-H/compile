@@ -218,27 +218,40 @@ bool CompUnit(){
         }
         if (words[now_pos].id == 9){
             now_pos = get_next();
-            if (words[now_pos].id == 1){
-                lVarVector.emplace_back(0, words[now_pos].name, "int", constFlag);
-                lVarVector.back().isGlobal = true;
-                now_pos = get_next();
-                if (words[now_pos].id == 14){
-                    localFlag = false;
-                    break;
-                } else if (words[now_pos].id == 12){
-                    now_pos = get_next();
-                    GlobalExp();
-                    if (now_pos <= 0){
+            while (true){
+                if (words[now_pos].id == 1){
+                    if (checkRepeat(now_pos)){
                         return false;
                     }
-                    if (words[now_pos].id == 13){
-                        printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
+                    lVarVector.emplace_back(0, words[now_pos].name, "int", constFlag);
+                    lVarVector.back().isGlobal = true;
+                    now_pos = get_next();
+                    if (words[now_pos].id == 14){
+                        localFlag = false;
+                        break;
+                    } else if (words[now_pos].id == 12){
                         now_pos = get_next();
+                        GlobalExp();
+                        if (now_pos <= 0){
+                            return false;
+                        }
+                        if (words[now_pos].id == 13){
+                            printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
+                            now_pos = get_next();
+                            break;
+                        }
+                    } else{
+                        now_pos = -4;
+                        return false;
                     }
-                } else{
-                    now_pos = -4;
-                    return false;
+                } else if (words[now_pos].id == 28){
+                    printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
+                    now_pos = get_next();
                 }
+            }
+            if (words[now_pos].id == 14){
+                localFlag = false;
+                break;
             }
         }
         constFlag = false;
@@ -358,7 +371,12 @@ void Stmt(){
                     printf("store i32 ");
                     printRegister(registerStack.top());
                     registerStack.pop();
-                    printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+                    if (lVarVector[lVarVector_pos].register_order == 0) {
+                        printf(", i32* @%s\n", lVarVector[lVarVector_pos].name);
+                    } else{
+                        printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+                    }
+
                 } else{
                     now_pos = tmp_pos;
                     Exp();
