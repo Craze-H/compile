@@ -400,12 +400,14 @@ void Stmt(){
                     } else{
                         printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
                     }
-
                 } else{
                     now_pos = tmp_pos;
                     Exp();
                 }
             }
+        } else if (words[now_pos].id == 6){
+            printf("br label %%endloop%d\n\n", loopStack.back());
+            now_pos = get_next();
         }
         if (words[now_pos].id == 13){
             now_pos = get_next();
