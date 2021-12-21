@@ -10,6 +10,13 @@ int main(){
 #ifdef LOCAL
     freopen("in.txt", "r", stdin);
 #endif
+    printf("declare i32 @getint()\n"
+           "declare i32 @getarray(i32*)\n"
+           "declare i32 @getch()\n"
+           "declare void @putint(i32)\n"
+           "declare void @putch(i32)\n"
+           "declare void @putarray(i32,i32*)\n");
+    printf("define dso_local i32 @main() {\n");
 	getSym();
     //return 0;
     printf("\tret i32 0\n");
