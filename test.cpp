@@ -766,6 +766,7 @@ void Exp(){
             //printf("%d\n", registerStack.top());
             last_word_key = '0';
         } else if (words[now_pos].id == 1){
+            last_word_key = '1';
             int reservedMode = checkReserved(words[now_pos].name);
             if (reservedMode != -1){
                 reservedFunc(reservedMode);
@@ -793,7 +794,6 @@ void Exp(){
                 now_pos = -1;
                 break;
             }
-            last_word_key = '1';
         } else{
             if (lPar_num != 0){
                 now_pos = 0;
