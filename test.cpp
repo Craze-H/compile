@@ -229,17 +229,18 @@ bool CompUnit(){
                     if (words[now_pos].id == 14){
                         localFlag = false;
                         break;
-                    } else if (words[now_pos].id == 12){
+                    }
+                    if (words[now_pos].id == 12){
                         now_pos = get_next();
                         GlobalExp();
                         if (now_pos <= 0){
                             return false;
                         }
-                        if (words[now_pos].id == 13){
-                            printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
-                            now_pos = get_next();
-                            break;
-                        }
+                    }
+                    if (words[now_pos].id == 13){
+                        printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
+                        now_pos = get_next();
+                        break;
                     } else{
                         now_pos = -4;
                         return false;
