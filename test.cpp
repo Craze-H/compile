@@ -493,12 +493,17 @@ void RelExp(){
 }
 
 void BlockItem(){
+    lVarVector.emplace_back(0, "{", "{", false);
     while (lBrace_num != 0){
         if (now_pos <= 0){
             return;
         }
         if (words[now_pos].id == 17){
             lBrace_num--;
+            while (strcmp(lVarVector.back().name, "{") != 0){
+                lVarVector.pop_back();
+            }
+            lVarVector.pop_back();
             now_pos = get_next();
             break;
         } else if (words[now_pos].id == 11){
