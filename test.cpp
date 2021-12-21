@@ -406,6 +406,7 @@ void Stmt(){
                         printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
                     }
                 } else{
+                    now = tmp_pos;
                     now_pos = tmp_pos;
                     Exp();
                 }
