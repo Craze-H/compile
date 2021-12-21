@@ -241,13 +241,13 @@ bool CompUnit(){
                         printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
                         now_pos = get_next();
                         break;
+                    } else if (words[now_pos].id == 28){
+                        printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
+                        now_pos = get_next();
                     } else{
                         now_pos = -4;
                         return false;
                     }
-                } else if (words[now_pos].id == 28){
-                    printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
-                    now_pos = get_next();
                 }
             }
             if (words[now_pos].id == 14){
