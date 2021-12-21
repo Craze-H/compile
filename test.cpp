@@ -16,6 +16,7 @@ void GlobalExp();
 void constCalculate();
 bool CompUnit();
 
+bool jumpFlag = false;
 int now_pos;
 int lPar_num = 0;
 int lBrace_num = 0;
@@ -326,7 +327,10 @@ void Stmt(){
                 printf("%d:\n", register_num);
                 now_pos = get_next();
                 Stmt();
-                printf("br label %%if%d\n\n", judgeStack.back());
+                if (!jumpFlag){
+                    printf("br label %%if%d\n\n", judgeStack.back());
+                }
+                jumpFlag = false;
                 int else_flag = register_num;
                 printf("else%d:\n", judgeStack.back());
                 if (words[now_pos].id == 4){
@@ -349,6 +353,7 @@ void Stmt(){
             Cond();
             printf("br i1 %%%d, label %%%d, label %%endLoop%d\n\n", registerStack.top(), ++register_num, loopStack.back());
             typeStack.emplace_back(0);
+            printf("%d:\n", register_num);
             if (now_pos <= 0){
                 return;
             }
@@ -359,6 +364,8 @@ void Stmt(){
                     return;
                 }
                 printf("br label %%loop%d\n\n", loopStack.back());
+                typeStack.emplace_back(0);
+                ++register_num;
                 printf("endLoop%d:\n", loopStack.back());
                 loopStack.pop_back();
             }
@@ -406,7 +413,12 @@ void Stmt(){
                 }
             }
         } else if (words[now_pos].id == 6){
-            printf("br label %%endloop%d\n\n", loopStack.back());
+            printf("br label %%endLoop%d\n\n", loopStack.back());
+            jumpFlag = true;
+            now_pos = get_next();
+        } else if (words[now_pos].id == 7){
+            printf("br label %%loop%d\n\n", loopStack.back());
+            jumpFlag = true;
             now_pos = get_next();
         }
         if (words[now_pos].id == 13){
@@ -415,7 +427,6 @@ void Stmt(){
             now_pos = 0;
         }
     }
-
 }
 
 void Cond(){
@@ -594,6 +605,7 @@ void Decl(){
                     }
                     printf(", i32* %%%d\n", register_num);
                 }
+                storeFlag = false;
                 now_pos = get_next();
             }
         }
@@ -611,6 +623,7 @@ void Decl(){
         }
         printf(", i32* %%%d\n", register_num);
     }
+    storeFlag = false;
     now_pos = get_next();
 }
 
