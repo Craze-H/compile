@@ -340,6 +340,29 @@ void Stmt(){
                 now_pos = -2;
             }
         }
+    } else if (words[now_pos].id == 5){
+        loopStack.emplace_back(++loop_num);
+        now_pos = get_next();
+        if (words[now_pos].id == 14){
+            printf("br label %%loop%d\n\nloop%d:\n", loopStack.back(), loopStack.back());
+            now_pos = get_next();
+            Cond();
+            printf("br i1 %%%d, label %%%d, label %%endLoop%d\n\n", registerStack.top(), ++register_num, loopStack.back());
+            typeStack.emplace_back(0);
+            if (now_pos <= 0){
+                return;
+            }
+            if (words[now_pos].id == 15){
+                now_pos = get_next();
+                Stmt();
+                if (now_pos <= 0){
+                    return;
+                }
+                printf("br label %%loop%d\n\n", loopStack.back());
+                printf("endLoop%d:\n", loopStack.back());
+                loopStack.pop_back();
+            }
+        }
     } else{
         if (words[now_pos].id == 8){
             now_pos = get_next();
