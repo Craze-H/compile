@@ -364,8 +364,6 @@ void Stmt(){
                     return;
                 }
                 printf("br label %%loop%d\n\n", loopStack.back());
-                typeStack.emplace_back(0);
-                ++register_num;
                 printf("endLoop%d:\n", loopStack.back());
                 loopStack.pop_back();
             }
