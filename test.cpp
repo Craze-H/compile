@@ -322,14 +322,14 @@ void Stmt(){
                     typeStack.emplace_back(1);
                 }*/
                 judgeStack.emplace_back(++judge_num);
-                printf("br i1 %%%d, label %%%d, label %%else%d\n\n", registerStack.top(), ++register_num, judgeStack.back());
+                printf("br i1 ");
+                printRegister(registerStack.top());
+                printf(", label %%%d, label %%else%d\n\n", ++register_num, judgeStack.back());
                 typeStack.emplace_back(0);
                 printf("%d:\n", register_num);
                 now_pos = get_next();
                 Stmt();
-                if (!jumpFlag){
-                    printf("br label %%if%d\n\n", judgeStack.back());
-                }
+                printf("br label %%if%d\n\n", judgeStack.back());
                 jumpFlag = false;
                 int else_flag = register_num;
                 printf("else%d:\n", judgeStack.back());
@@ -351,7 +351,9 @@ void Stmt(){
             printf("br label %%loop%d\n\nloop%d:\n", loopStack.back(), loopStack.back());
             now_pos = get_next();
             Cond();
-            printf("br i1 %%%d, label %%%d, label %%endLoop%d\n\n", registerStack.top(), ++register_num, loopStack.back());
+            printf("br i1 ");
+            printRegister(registerStack.top());
+            printf(", label %%%d, label %%endLoop%d\n\n", ++register_num, loopStack.back());
             typeStack.emplace_back(0);
             printf("%d:\n", register_num);
             if (now_pos <= 0){
@@ -413,10 +415,14 @@ void Stmt(){
             }
         } else if (words[now_pos].id == 6){
             printf("br label %%endLoop%d\n\n", loopStack.back());
+            typeStack.emplace_back(0);
+            register_num++;
             jumpFlag = true;
             now_pos = get_next();
         } else if (words[now_pos].id == 7){
             printf("br label %%loop%d\n\n", loopStack.back());
+            typeStack.emplace_back(0);
+            register_num++;
             jumpFlag = true;
             now_pos = get_next();
         }
@@ -763,7 +769,7 @@ void Exp(){
             int reservedMode = checkReserved(words[now_pos].name);
             if (reservedMode != -1){
                 reservedFunc(reservedMode);
-                return;
+                continue;
             }
             bool found = false;
             for (int i = lVarVector.size() - 1; i >= 0 ; --i) {
