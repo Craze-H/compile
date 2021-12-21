@@ -5,6 +5,7 @@ struct lVarNode{
     int register_order{};
     bool isConst{};
     int constValue{};
+    bool isGlobal = false;
     lVarNode(int register_order,const char* name, const char* type, bool isConst){
         this->register_order = register_order;
         this->name = new char [strlen(name) + 1];
@@ -26,6 +27,7 @@ struct lVarNode{
 std::vector<lVarNode>lVarVector;
 std::vector<int>judgeStack;
 std::vector<int>typeStack;
+bool localFlag = true;
 bool constFlag = false;
 bool storeFlag = false;
 int register_num = 0;

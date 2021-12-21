@@ -12,9 +12,17 @@ void LOrExp();
 void LAndExp();
 void EqExp();
 void RelExp();
+void GlobalExp();
+void constCalculate();
+bool CompUnit();
+
 int now_pos;
 int lPar_num = 0;
 int lBrace_num = 0;
+
+std::vector<int> numberVec;
+std::vector<char> opVec;
+
 int main(){
 #ifdef LOCAL
     freopen("in.txt", "r", stdin);
@@ -37,14 +45,7 @@ int main(){
            "declare void @putch(i32)\n"
            "declare void @putarray(i32,i32*)\n");
     now_pos = get_next();
-	if(words[now_pos].id == 9){
-        now_pos = get_next();
-        if (!funcRead()) {
-            return now_pos - 1;
-        }
-        if (now_pos == words_len){
-            printf("}\n");
-        }
+	if(CompUnit()){
 		return 0;
 	}
 	else {
@@ -52,11 +53,209 @@ int main(){
 	}
 }
 
-bool funcRead(){
-    if(words[now_pos].id == 1 && !(strcmp(words[now_pos].name, "main"))){
-        lVarVector.emplace_back(0, "main", "func", false);
-        printf("define dso_local i32 @%s(){\n", words[now_pos].name);
+void GlobalExp(){
+    char last_ch = 0;
+    while (true){
+        if (words[now_pos].id == 14){
+            lPar_num++;
+            last_ch = '(';
+            opVec.emplace_back('(');
+        } else if (words[now_pos].id == 15){
+            if (lPar_num > 0){
+                lPar_num--;
+                last_ch = '0';
+                while (!opVec.empty() && opVec.back() != '('){
+                    constCalculate();
+                }
+                opVec.pop_back();
+            } else{
+                while (!opVec.empty()){
+                    constCalculate();
+                }
+                break;
+            }
+        } else if (words[now_pos].id == 20 || words[now_pos].id == 21){
+            if (last_ch != '0'){
+                if (words[now_pos].id == 20){
+                    last_ch = '+';
+                    opVec.emplace_back('#');
+                } else{
+                    last_ch = '-';
+                    opVec.emplace_back('$');
+                }
+            } else{
+                while (!opVec.empty() && opVec.back() != '('){
+                    if (now_pos <= 0){
+                        break;
+                    }
+                    constCalculate();
+                }
+                if (now_pos <= 0){
+                    break;
+                }
+                if (words[now_pos].id == 20){
+                    last_ch = '+';
+                    opVec.emplace_back('+');
+                } else{
+                    last_ch = '-';
+                    opVec.emplace_back('-');
+                }
+            }
+        } else if (words[now_pos].id > 21 && words[now_pos].id < 25){
+            while (!opVec.empty() && opVec.back() != '(' && opVec.back() != '+' && opVec.back() != '-'){
+                if (now_pos <= 0){
+                    break;
+                }
+                constCalculate();
+            }
+            if (now_pos <= 0){
+                break;
+            }
+            switch (words[now_pos].id) {
+                case 22:
+                    last_ch = '*';
+                    opVec.emplace_back('*');
+                    break;
+                case 23:
+                    last_ch = '/';
+                    opVec.emplace_back('/');
+                    break;
+                case 24:
+                    last_ch = '%';
+                    opVec.emplace_back('%');
+                    break;
+            }
+        } else if(words[now_pos].id == 2){
+            if (last_ch == '0'){
+                now_pos = -4;
+                break;
+            }
+            numberVec.emplace_back(words[now_pos].num);
+            last_ch = '0';
+        } else if (words[now_pos].id == 1){
+            int reservedMode = checkReserved(words[now_pos].name);
+            if (reservedMode != -1){
+                now_pos = -4;
+                return;
+            }
+            bool found = false;
+            for (int i = lVarVector.size() - 2; i >= 0 ; --i) {
+                if (strcmp(lVarVector[i].name, words[now_pos].name) == 0){
+                    if (!lVarVector[i].isConst){
+                        now_pos = -1;
+                        return;
+                    }
+                    found = true;
+                    numberVec.emplace_back(lVarVector[i].constValue);
+                    break;
+                }
+            }
+            if (!found){
+                now_pos = -1;
+                break;
+            }
+            last_ch = '0';
+        } else{
+            if (lPar_num != 0){
+                now_pos = -4;
+                break;
+            }
+            while (!opVec.empty()){
+                constCalculate();
+            }
+            lVarVector.back().constValue = numberVec.back();
+            break;
+        }
         now_pos = get_next();
+    }
+}
+
+void constCalculate(){
+    char op = opVec.back();
+    opVec.pop_back();
+    if (numberVec.empty()){
+        now_pos = -4;
+    } else{
+        if (op == '#'){
+            return;
+        } else if (op == '$'){
+            numberVec.back() = -numberVec.back();
+        } else{
+            if (numberVec.size() < 2){
+                now_pos = -4;
+                return;
+            } else{
+                int second = numberVec.back();
+                numberVec.pop_back();
+                int first = numberVec.back();
+                numberVec.pop_back();
+                switch (op) {
+                    case '+':
+                        numberVec.emplace_back(first + second);
+                        break;
+                    case '-':
+                        numberVec.emplace_back(first - second);
+                        break;
+                    case '*':
+                        numberVec.emplace_back(first * second);
+                        break;
+                    case '/':
+                        numberVec.emplace_back(first / second);
+                        break;
+                    default:
+                        numberVec.emplace_back(first % second);
+                }
+            }
+        }
+    }
+}
+
+bool CompUnit(){
+    while (true){
+        if (words[now_pos].id == 11){
+            constFlag = true;
+            now_pos = get_next();
+        }
+        if (words[now_pos].id == 9){
+            now_pos = get_next();
+            if (words[now_pos].id == 1){
+                lVarVector.emplace_back(0, words[now_pos].name, "int", constFlag);
+                lVarVector.back().isGlobal = true;
+                now_pos = get_next();
+                if (words[now_pos].id == 14){
+                    localFlag = false;
+                    break;
+                } else if (words[now_pos].id == 12){
+                    now_pos = get_next();
+                    GlobalExp();
+                    if (now_pos <= 0){
+                        return false;
+                    }
+                    if (words[now_pos].id == 13){
+                        printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
+                        now_pos = get_next();
+                    }
+                } else{
+                    now_pos = -4;
+                    return false;
+                }
+            }
+        }
+        constFlag = false;
+    }
+    constFlag = false;
+    if (!funcRead()) {
+        return now_pos - 1;
+    }
+    if (now_pos == words_len){
+        printf("}\n");
+    }
+    return true;
+}
+
+bool funcRead(){
+    if(!(strcmp(words[now_pos - 1].name, "main"))){
+        printf("define dso_local i32 @%s(){\n", words[now_pos - 1].name);
     } else {
         return false;
     }
@@ -508,12 +707,16 @@ void Exp(){
             bool found = false;
             for (int i = lVarVector.size() - 1; i >= 0 ; --i) {
                 if (strcmp(lVarVector[i].name, words[now_pos].name) == 0){
-                    if (constFlag && !lVarVector[i].isConst){
+                    if ((constFlag || localFlag) && !lVarVector[i].isConst){
                         now_pos = -1;
                         return;
                     }
                     found = true;
-                    printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
+                    if (lVarVector[i].isGlobal){
+                        printf("%%%d = load i32, i32* @%s\n", ++register_num, lVarVector[i].name);
+                    } else{
+                        printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
+                    }
                     registerStack.push(register_num);
                     typeStack.emplace_back(32);
                     break;
