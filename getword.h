@@ -234,7 +234,7 @@ void work(){
 void get_in(){
 	c_get = getchar();
 	while (c_get != EOF){
-        printf("putch(%d)\n", int(c_get));
+        printf("call void @putch(i32 %d)\n", int(c_get));
         /*if (c_get == '\n'){
             printf(" ");
         }else{printf("%c",c_get);}*/
