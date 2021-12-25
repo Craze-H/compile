@@ -704,7 +704,7 @@ void BlockItem(){
 
 void Decl(){
     int tmp_pos = 0;
-    while (true){
+    while (words[now_pos].id != 13){
         if (words[now_pos].id == 1){
             tmp_pos = now_pos;
             if (checkRepeat(tmp_pos)){
@@ -726,7 +726,7 @@ void Decl(){
                     return;
                 }
             }// else
-            if (words[now_pos].id == 28 || words[now_pos].id == 13){
+            if (words[now_pos].id == 28){
                 typeStack.emplace_back(32);
                 printf("%%%d = alloca i32\n", register_num);
                 if (storeFlag){
@@ -748,10 +748,23 @@ void Decl(){
         if (now_pos <= 0){
             return;
         }
-        if (words[now_pos].id == 13){
-            break;
-        }
     }
+    lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
+    typeStack.emplace_back(32);
+    printf("%%%d = alloca i32\n", register_num);
+    if (storeFlag){
+        printf("store i32 ");
+        if (constFlag){
+            printf("%d",numberVec.back());
+        } else{
+            if (!registerStack.empty()){
+                printRegister(registerStack.top());
+            }
+        }
+        printf(", i32* %%%d\n", register_num);
+    }
+    storeFlag = false;
+    now_pos = get_next();
 }
 
 void reservedFunc(int reservedMode){
