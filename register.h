@@ -6,6 +6,9 @@ struct lVarNode{
     bool isConst{};
     int constValue{};
     bool isGlobal = false;
+    std::vector<int> array;
+    std::vector<int> each_dimension;
+    std::vector<int> array_elements;
     lVarNode(int register_order,const char* name, const char* type, bool isConst){
         this->register_order = register_order;
         this->name = new char [strlen(name) + 1];
@@ -29,8 +32,10 @@ std::vector<int>judgeStack;
 std::vector<int>typeStack;
 std::vector<int>loopStack;
 bool localFlag = true;
+bool iniFlag = false;
 bool constFlag = false;
 bool storeFlag = false;
+bool arrayFlag = false;
 int register_num = 0;
 int judge_num = 0;
 int loop_num = 0;

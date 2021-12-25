@@ -1,6 +1,11 @@
+const int array4[2][2][3] = {{{1}},{{2}}};
+const int array1[5][2] = {{}};
+const int array2[6] = {1};
+const int array3[3] = {1, 2, 3};
 const int ascii_0 = 48;
 
 int main() {
+    const int nothing = 1, a = nothing + 1;
     int sum = 0, c;
 
     while (1) {
