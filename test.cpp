@@ -16,7 +16,10 @@ void GlobalExp();
 void constCalculate();
 bool CompUnit();
 void globalArrayIni(int dimension);
+void localArrayIni(int dimension, int tmp_register);
 void declGlobalArray(int dimension, int now_element);
+void getConstArray(int location, int dimension, int now_element);
+void getArray(int location, int dimension);
 
 int now_pos;
 int lPar_num = 0;
@@ -32,11 +35,13 @@ int main(){
 #endif
 	getSym();
     typeStack.emplace_back(0);
-    /*for (int i = 1; i <= words_len; i++){
+    /*freopen("token", "w", stdout);
+    for (int i = 1; i <= words_len; i++){
         if (words[i].id == 1) printf("%d %s(%s) \n", i, id_map[words[i].id],words[i].name);
         else if (words[i].id == 2) printf("%d %s(%lld) \n", i, id_map[words[i].id],words[i].num);
         else printf("%d %s \n", i, id_map[words[i].id]);
-    }*/
+    }
+    return 0;*/
     words[0].id = 0;
     emptyRegisterStack();
     emptyOpStack();
@@ -54,6 +59,29 @@ int main(){
 	else {
 		return -2;
 	}
+}
+
+void getConstArray(int location, int dimension, int now_element){
+    while (words[now_pos].id == 18){
+        if (dimension > lVarVector[location].array.size()){
+            now_pos = -6;
+            return;
+        }
+        now_pos = get_next();
+        GlobalExp();
+        if (now_pos <= 0){
+            return;
+        }
+        if (words[now_pos].id == 19){
+            now_pos = get_next();
+            getConstArray(location, dimension + 1, now_element + numberVec.back() * lVarVector[location].each_dimension[dimension - 1]);
+        }
+        int const_value = numberVec.back();
+        numberVec.pop_back();
+        numberVec.pop_back();
+        numberVec.emplace_back(const_value);
+    }
+    numberVec.emplace_back(lVarVector[location].array_elements[now_element]);
 }
 
 void GlobalExp(){
@@ -136,6 +164,10 @@ void GlobalExp(){
             numberVec.emplace_back(words[now_pos].num);
             last_ch = '0';
         } else if (words[now_pos].id == 1){
+            bool isArray = false;
+            if (words[now_pos + 1].id == 18){
+                isArray = true;
+            }
             int reservedMode = checkReserved(words[now_pos].name);
             if (reservedMode != -1){
                 now_pos = -4;
@@ -148,14 +180,29 @@ void GlobalExp(){
                         now_pos = -1;
                         return;
                     }
+                    if (isArray && lVarVector[i].array.size() == 0){
+                        now_pos = -6;
+                        return;
+                    }
                     found = true;
-                    numberVec.emplace_back(lVarVector[i].constValue);
+                    if (isArray){
+                        now_pos = get_next();
+                        getConstArray(i, 1, 0);
+                        if (now_pos <= 0){
+                            return;
+                        }
+                    } else{
+                        numberVec.emplace_back(lVarVector[i].constValue);
+                    }
                     break;
                 }
             }
             if (!found){
                 now_pos = -1;
                 break;
+            }
+            if (isArray){
+                continue;
             }
             last_ch = '0';
         } else{
@@ -297,11 +344,12 @@ bool CompUnit(){
                         arrayFlag = true;
                         now_pos = get_next();
                         GlobalExp();
-                        if (numberVec.back() <= 0){
+                        if (now_pos <= 0 || numberVec.back() <= 0){
                             now_pos = -6;
                             return false;
                         }
                         lVarVector.back().array.emplace_back(numberVec.back());
+                        numberVec.pop_back();
                         lVarVector.back().each_dimension.emplace_back(1);
                         if (words[now_pos].id == 19){
                             now_pos = get_next();
@@ -704,7 +752,8 @@ void BlockItem(){
 
 void Decl(){
     int tmp_pos = 0;
-    while (words[now_pos].id != 13){
+    int tmp_register;
+    while (true){
         if (words[now_pos].id == 1){
             tmp_pos = now_pos;
             if (checkRepeat(tmp_pos)){
@@ -713,58 +762,152 @@ void Decl(){
             }
             iniFlag = true;
             lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
+            typeStack.emplace_back(32);
+            printf("%%%d = alloca i32\n", register_num);
+            tmp_register = register_num;
+            registerStack.push(register_num);
             now_pos = get_next();
+            while (words[now_pos].id == 18){
+                arrayFlag = true;
+                now_pos = get_next();
+                GlobalExp();
+                if (now_pos <= 0 || numberVec.back() <= 0){
+                    now_pos = -6;
+                    return;
+                }
+                lVarVector.back().array.emplace_back(numberVec.back());
+                numberVec.pop_back();
+                lVarVector.back().each_dimension.emplace_back(1);
+                if (words[now_pos].id == 19){
+                    now_pos = get_next();
+                } else{
+                    return;
+                }
+            }
+            if (arrayFlag){
+                for (int i = lVarVector.back().array.size() - 1; i >= 0; --i) {
+                    if (i != lVarVector.back().array.size() - 1){
+                        lVarVector.back().each_dimension[i] = lVarVector.back().array[i + 1] * lVarVector.back().each_dimension[i + 1];
+                    }
+                }
+                printf("call void @memset(i32* %%%d, i32 0, i32 %d)\n", lVarVector.back().register_order, lVarVector.back().array[0] * lVarVector.back().each_dimension[0]);
+            }
             if (words[now_pos].id == 12){
                 storeFlag = true;
                 now_pos = get_next();
-                if (constFlag){
-                    GlobalExp();
-                } else{
-                    Exp();
-                }
-                if (now_pos <= 0){
-                    return;
-                }
-            }// else
-            if (words[now_pos].id == 28){
-                typeStack.emplace_back(32);
-                printf("%%%d = alloca i32\n", register_num);
-                if (storeFlag){
-                    printf("store i32 ");
-                    if (constFlag){
-                        printf("%d",numberVec.back());
-                    } else{
-                        if (!registerStack.empty()){
-                            printRegister(registerStack.top());
+                if (arrayFlag){
+                    if (words[now_pos].id == 16){
+                        now_pos = get_next();
+                        localArrayIni(1, register_num);
+                        if (now_pos <= 0){
+                            return;
                         }
+                    } else{
+                        now_pos = -6;
+                        return;
                     }
-                    printf(", i32* %%%d\n", register_num);
+                } else{
+                    if (constFlag){
+                        GlobalExp();
+                    } else{
+                        Exp();
+                    }
+                    if (now_pos <= 0){
+                        return;
+                    }
                 }
+            }
+            if (storeFlag && !arrayFlag){
+                printf("store i32 ");
+                if (constFlag){
+                    printf("%d",numberVec.back());
+                } else{
+                    if (!registerStack.empty()){
+                        printRegister(registerStack.top());
+                    }
+                }
+                printf(", i32* %%%d\n", tmp_register);
+            }
+            if (words[now_pos].id == 28 || words[now_pos].id == 13){
                 storeFlag = false;
+                iniFlag = false;
+                if (words[now_pos].id == 13){
+                    break;
+                }
                 now_pos = get_next();
             }
-            iniFlag = false;
         }
         if (now_pos <= 0){
             return;
         }
     }
-    lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
-    typeStack.emplace_back(32);
-    printf("%%%d = alloca i32\n", register_num);
-    if (storeFlag){
-        printf("store i32 ");
-        if (constFlag){
-            printf("%d",numberVec.back());
-        } else{
-            if (!registerStack.empty()){
-                printRegister(registerStack.top());
+}
+
+void localArrayIni(int dimension, int tmp_register){
+    int element_num = lVarVector.back().array[dimension - 1];
+    for (int i = 1; i <= element_num; ++i) {
+        printf("%%%d = getelementptr ", ++register_num);
+        typeStack.emplace_back(4);
+        for (int j = dimension - 1; j < lVarVector.back().array.size(); ++j) {
+            printf("[%d x ", lVarVector.back().array[j]);
+            if (j == lVarVector.back().array.size() - 1){
+                printf("i32");
             }
         }
-        printf(", i32* %%%d\n", register_num);
+        for (int j = dimension - 1; j < lVarVector.back().array.size(); ++j) {
+            printf("]");
+        }
+        printf(", ");
+        for (int j = dimension - 1; j < lVarVector.back().array.size(); ++j) {
+            printf("[%d x ", lVarVector.back().array[j]);
+            if (j == lVarVector.back().array.size() - 1){
+                printf("i32");
+            }
+        }
+        for (int j = dimension - 1; j < lVarVector.back().array.size(); ++j) {
+            printf("]");
+        }
+        printf("* %%%d, i32 0, i32 %d\n", tmp_register, i - 1);
+        registerStack.push(register_num);
+        if (words[now_pos].id == 28){
+            if (i == 1){
+                now_pos = -6;
+                return;
+            }
+            now_pos = get_next();
+        }
+        if (dimension == lVarVector.back().array.size()){
+            if (words[now_pos].id == 16){
+                now_pos = -6;
+                return;
+            }
+            if (words[now_pos].id == 17){
+                registerStack.push(0);
+            } else{
+                Exp();
+            }
+            printf("store i32 ");
+            printRegister(registerStack.top());
+            registerStack.pop();
+            printf(", i32* %%%d\n", tmp_register);
+            if (now_pos <= 0){
+                return;
+            }
+            if (words[now_pos].id == 28){
+                now_pos = get_next();
+            }
+        } else if (words[now_pos].id == 16){
+            now_pos = get_next();
+            localArrayIni(dimension + 1, register_num);
+            if (now_pos <= 0){
+                return;
+            }
+        }
+        if (words[now_pos].id == 17){
+            now_pos = get_next();
+            break;
+        }
     }
-    storeFlag = false;
-    now_pos = get_next();
 }
 
 void reservedFunc(int reservedMode){
@@ -809,6 +952,62 @@ void reservedFunc(int reservedMode){
         default:
             now_pos = -1;
             return;
+    }
+}
+
+void getArray(int location, int dimension){
+    while (words[now_pos].id == 18){
+        int tmp_register = registerStack.top();
+        registerStack.pop();
+        if (dimension > lVarVector[location].array.size()){
+            now_pos = -6;
+            return;
+        }
+        now_pos = get_next();
+        Exp();
+        if (now_pos <= 0){
+            return;
+        }
+        //printf("registerStack.top(): %d\n", registerStack.top());
+        printf("%%%d = getelementptr ", ++register_num);
+        typeStack.emplace_back(4);
+        for (int j = dimension - 1; j < lVarVector[location].array.size(); ++j) {
+            printf("[%d x ", lVarVector[location].array[j]);
+            if (j == lVarVector[location].array.size() - 1){
+                printf("i32");
+            }
+        }
+        for (int j = dimension - 1; j < lVarVector[location].array.size(); ++j) {
+            printf("]");
+        }
+        printf(", ");
+        for (int j = dimension - 1; j < lVarVector[location].array.size(); ++j) {
+            printf("[%d x ", lVarVector[location].array[j]);
+            if (j == lVarVector[location].array.size() - 1){
+                printf("i32");
+            }
+        }
+        for (int j = dimension - 1; j < lVarVector[location].array.size(); ++j) {
+            printf("]");
+        }
+        printf("* ");
+        if (tmp_register == 0){
+            printf("@%s", lVarVector[location].name);
+        } else{
+            printRegister(tmp_register);
+        }
+        printf(", i32 0, i32 ");
+        printRegister(registerStack.top());
+        puts("");
+        registerStack.pop();
+        registerStack.push(register_num);
+        if (now_pos <= 0){
+            return;
+        }
+        if (words[now_pos].id == 19){
+            now_pos = get_next();
+            getArray(location, dimension + 1);
+        }
     }
 }
 
@@ -902,6 +1101,10 @@ void Exp(){
             last_word_key = '0';
         } else if (words[now_pos].id == 1){
             last_word_key = '1';
+            bool isArray = false;
+            if (words[now_pos + 1].id == 18){
+                isArray = true;
+            }
             int reservedMode = checkReserved(words[now_pos].name);
             if (reservedMode != -1){
                 reservedFunc(reservedMode);
@@ -914,20 +1117,37 @@ void Exp(){
                         now_pos = -1;
                         return;
                     }
+                    if (isArray && lVarVector[i].array.size() == 0){
+                        now_pos = -6;
+                        return;
+                    }
                     found = true;
+                    if (isArray){
+                        registerStack.push(lVarVector[i].register_order);
+                        now_pos = get_next();
+                        getArray(i, 1);
+                    }
                     if (lVarVector[i].isGlobal){
                         printf("%%%d = load i32, i32* @%s\n", ++register_num, lVarVector[i].name);
                     } else{
-                        printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
+                        if (isArray){
+                            printf("%%%d = load i32, i32* %%%d\n", ++register_num, registerStack.top());
+                            registerStack.pop();
+                        } else{
+                            printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
+                        }
                     }
-                    registerStack.push(register_num);
                     typeStack.emplace_back(32);
+                    registerStack.push(register_num);
                     break;
                 }
             }
             if (!found){
                 now_pos = -1;
                 break;
+            }
+            if (isArray){
+                continue;
             }
         } else{
             if (lPar_num != 0){

@@ -5,52 +5,9 @@ const int array3[3] = {1, 2, 3};
 const int ascii_0 = 48;
 
 int main() {
+    const int b = array4[0][0][1];
     const int nothing = 1, a = nothing + 1;
-    int sum = 0, c;
-
-    while (1) {
-        c = getch() - ascii_0;
-        if (c < 0 || c > 9) {
-            continue;
-        } else {
-            break;
-        }
-    }
-    sum = c;
-
-    while (1) {
-        c = getch() - ascii_0;
-        if (c >= 0 && c <= 9) {
-            sum = sum * 10 + c;
-        } else {
-            break;
-        }
-    }
-
-    putint(sum);
-    putch(10);
-
-    sum = 0;
-
-    while (1) {
-        c = getch() - ascii_0;
-        if (c < 0 || c > 9) {
-            continue;
-        } else {
-            break;
-        }
-    }
-    sum = c;
-
-    while (1) {
-        c = getch() - ascii_0;
-        if (c >= 0 && c <= 9) {
-            sum = sum * 10 + c;
-        } else {
-            break;
-        }
-    }
-
-    putint(sum);
+    int tmp, sum = a + 2, c[2][3] = {{a, 1}, {2}};
+    tmp = c[0][sum + 1];
     return 0;
 }
