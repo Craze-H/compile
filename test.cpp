@@ -370,7 +370,9 @@ bool CompUnit(){
                             }
                         }
                     }
+                    storeFlag = false;
                     if (words[now_pos].id == 12){
+                        storeFlag = true;
                         now_pos = get_next();
                         iniFlag = true;
                         if (arrayFlag){
@@ -409,9 +411,13 @@ bool CompUnit(){
                             for (int i = lVarVector.back().array.size() - 1; i >= 0; --i) {
                                 printf("]");
                             }
-                            printf(" [");
-                            declGlobalArray(1, 0);
-                            printf("]\n");
+                            if (storeFlag){
+                                printf(" [");
+                                declGlobalArray(1, 0);
+                                printf("]\n");
+                            } else{
+                                printf(" zeroinitializer\n");
+                            }
                             arrayFlag = false;
                         } else{
                             printf("@%s = dso_local global i32 %d\n", lVarVector.back().name, lVarVector.back().constValue);
@@ -650,6 +656,14 @@ void LOrExp(){
     if (words[now_pos].id == 31){
         now_pos = get_next();
         LOrExp();
+        if (registerStack.top() <= 0 || typeStack[registerStack.top()] == 32){
+            printf("%%%d = icmp ne i32 0, ", ++register_num);
+            typeStack.emplace_back(1);
+            printRegister(registerStack.top());
+            puts("");
+            registerStack.pop();
+            registerStack.push(register_num);
+        }
         printf("%%%d = or i1 ", ++register_num);
         printRegister(registerStack.top());
         registerStack.pop();
@@ -670,6 +684,14 @@ void LAndExp(){
     if (words[now_pos].id == 30){
         now_pos = get_next();
         LAndExp();
+        if (registerStack.top() <= 0 || typeStack[registerStack.top()] == 32){
+            printf("%%%d = icmp ne i32 0, ", ++register_num);
+            typeStack.emplace_back(1);
+            printRegister(registerStack.top());
+            puts("");
+            registerStack.pop();
+            registerStack.push(register_num);
+        }
         printf("%%%d = and i1 ", ++register_num);
         printRegister(registerStack.top());
         registerStack.pop();
