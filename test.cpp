@@ -1,4 +1,5 @@
 #include "register.h"
+void getToken();
 void BlockItem();
 bool funcRead();
 void Exp();
@@ -16,7 +17,7 @@ void GlobalExp();
 void constCalculate();
 bool CompUnit();
 void globalArrayIni(int dimension);
-void localArrayIni(int dimension, int tmp_register);
+void localArrayIni(int dimension, int father_register);
 void declGlobalArray(int dimension, int now_element);
 void declArray(int dimension);
 void getConstArray(int location, int dimension, int now_element);
@@ -30,6 +31,15 @@ int lBrace_num = 0;
 std::vector<int> numberVec;
 std::vector<char> opVec;
 
+void getToken(){
+    freopen("token", "w", stdout);
+    for (int i = 1; i <= words_len; i++){
+        if (words[i].id == 1) printf("%d %s(%s) \n", i, id_map[words[i].id],words[i].name);
+        else if (words[i].id == 2) printf("%d %s(%lld) \n", i, id_map[words[i].id],words[i].num);
+        else printf("%d %s \n", i, id_map[words[i].id]);
+    }
+}
+
 int main(){
 #ifdef LOCAL
     freopen("in.txt", "r", stdin);
@@ -37,13 +47,7 @@ int main(){
 #endif
 	getSym();
     typeStack.emplace_back(0);
-    /*freopen("token", "w", stdout);
-    for (int i = 1; i <= words_len; i++){
-        if (words[i].id == 1) printf("%d %s(%s) \n", i, id_map[words[i].id],words[i].name);
-        else if (words[i].id == 2) printf("%d %s(%lld) \n", i, id_map[words[i].id],words[i].num);
-        else printf("%d %s \n", i, id_map[words[i].id]);
-    }
-    return 0;*/
+    //getToken(); return 0;
     words[0].id = 0;
     emptyRegisterStack();
     emptyOpStack();
@@ -387,6 +391,12 @@ bool CompUnit(){
                         if (now_pos <= 0){
                             return false;
                         }
+                    } else{
+                        if (arrayFlag){
+                            for (int i = 0; i < lVarVector.back().array[0] * lVarVector.back().each_dimension[0]; ++i) {
+                                lVarVector.back().array_elements.emplace_back(0);
+                            }
+                        }
                     }
                     if (words[now_pos].id == 13 || words[now_pos].id == 28){
                         int tmp_pos = now_pos;
@@ -551,8 +561,28 @@ void Stmt(){
                 reservedFunc(reservedMode);
             } else {
                 int lVarVector_pos = getLVar(words[now_pos].name);
+                if (lVarVector_pos == -1){
+                    now_pos = 0;
+                    return;
+                }
+                bool isArray = false;
+                if (words[now_pos + 1].id == 18){
+                    isArray = true;
+                }
+                if (isArray){
+                    registerStack.push(lVarVector[lVarVector_pos].register_order);
+                    now_pos = get_next();
+                    getArray(lVarVector_pos, 1);
+                    if (now_pos <= 0){
+                        return;
+                    }
+                }
                 int tmp_pos = now_pos;
-                now_pos = get_next();
+                if (isArray){
+                    tmp_pos = now_pos - 1;
+                } else{
+                    now_pos = get_next();
+                }
                 if (words[now_pos].id == 12){
                     if (lVarVector[lVarVector_pos].isConst){
                         now_pos = -1;
@@ -566,10 +596,14 @@ void Stmt(){
                     printf("store i32 ");
                     printRegister(registerStack.top());
                     registerStack.pop();
-                    if (lVarVector[lVarVector_pos].register_order == 0) {
-                        printf(", i32* @%s\n", lVarVector[lVarVector_pos].name);
+                    if (isArray){
+                        printf(", i32* %%%d\n", registerStack.top());
                     } else{
-                        printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+                        if (lVarVector[lVarVector_pos].register_order == 0) {
+                            printf(", i32* @%s\n", lVarVector[lVarVector_pos].name);
+                        } else{
+                            printf(", i32* %%%d\n", lVarVector[lVarVector_pos].register_order);
+                        }
                     }
                 } else{
                     now = tmp_pos;
@@ -1090,7 +1124,7 @@ void Exp(){
                     opStack.push('$');
                 }
             } else{
-                while (!opStack.empty() && opStack.top() != '('){
+                while (!opStack.empty() && opStack.top() != '(' && opStack.top() != '.'){
                     if (now_pos <= 0){
                         break;
                     }
