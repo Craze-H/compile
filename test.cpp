@@ -932,20 +932,18 @@ void reservedFunc(int reservedMode){
         case 4:
             if (words[now_pos].id == 14){
                 now_pos = get_next();
-                opStack.push('(');
-                lPar_num++;
                 Exp();
                 if (now_pos <= 0){
                     return;
-                } /*else{
-                    if (words[now_pos].id == 15){*/
+                } else{
+                    if (words[now_pos].id == 15){
                         printf("call void @%s(i32 ", reserved[reservedMode]);
                         printRegister(registerStack.top());
                         printf(")\n");
-                        //now_pos = get_next();
+                        now_pos = get_next();
                         return;
-                    /*}
-                }*/
+                    }
+                }
             }
             now_pos = -1;
             return;
@@ -1126,6 +1124,9 @@ void Exp(){
                         registerStack.push(lVarVector[i].register_order);
                         now_pos = get_next();
                         getArray(i, 1);
+                        if (now_pos <= 0){
+                            return;
+                        }
                     }
                     if (lVarVector[i].isGlobal){
                         printf("%%%d = load i32, i32* @%s\n", ++register_num, lVarVector[i].name);
