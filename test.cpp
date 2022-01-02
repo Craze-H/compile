@@ -859,6 +859,7 @@ void Decl(){
                 }
                 printf("call void @memset(i32* %%%d, i32 0, i32 %d)\n", register_num, 4 * lVarVector.back().array[0] * lVarVector.back().each_dimension[0]);
             }
+            storeFlag = false;
             if (words[now_pos].id == 12){
                 storeFlag = true;
                 now_pos = get_next();
