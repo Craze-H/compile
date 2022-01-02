@@ -633,7 +633,7 @@ void Stmt(){
 void Cond(){
     LOrExp();
     if (registerStack.top() > 0 && typeStack[registerStack.top()] == 32){
-        printf("%%%d = icmp eq i32 1, ", ++register_num);
+        printf("%%%d = icmp ne i32 0, ", ++register_num);
         typeStack.emplace_back(1);
         printRegister(registerStack.top());
         puts("");
