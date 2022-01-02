@@ -876,6 +876,7 @@ void Decl(){
             if (words[now_pos].id == 28 || words[now_pos].id == 13){
                 storeFlag = false;
                 iniFlag = false;
+                arrayFlag = false;
                 if (words[now_pos].id == 13){
                     break;
                 }
@@ -1104,12 +1105,18 @@ void Exp(){
                 lPar_num--;
                 last_word_key = '0';
                 while (!opStack.empty() && opStack.top() != '('){
+                    if (opStack.top() == '.'){
+                        break;
+                    }
                     calculate();
                 }
                 opStack.pop();
             } else{
                 //judge finish
                 while (!opStack.empty()){
+                    if (opStack.top() == '.'){
+                        break;
+                    }
                     calculate();
                 }
                 break;
@@ -1143,6 +1150,9 @@ void Exp(){
             }
         } else if (words[now_pos].id > 21 && words[now_pos].id < 25){
             while (!opStack.empty() && opStack.top() != '(' && opStack.top() != '+' && opStack.top() != '-' && opStack.top() != '!'){
+                if (opStack.top() == '.'){
+                    break;
+                }
                 calculate();
             }
             if (now_pos <= 0){
