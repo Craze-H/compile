@@ -18,8 +18,10 @@ bool CompUnit();
 void globalArrayIni(int dimension);
 void localArrayIni(int dimension, int tmp_register);
 void declGlobalArray(int dimension, int now_element);
+void declArray(int dimension);
 void getConstArray(int location, int dimension, int now_element);
 void getArray(int location, int dimension);
+void zeroArray(int dimension);
 
 int now_pos;
 int lPar_num = 0;
@@ -312,7 +314,7 @@ void declGlobalArray(int dimension, int now_element){
         if (dimension == lVarVector.back().array.size()){
             printf("i32 %d", lVarVector.back().array_elements[now_element]);
         } else{
-            printf("[%d x i32] [", element_num);
+            printf("[%d x i32] [", lVarVector.back().array[dimension]);
             declGlobalArray(dimension + 1, now_element);
             printf("]");
         }
@@ -763,7 +765,7 @@ void Decl(){
             iniFlag = true;
             lVarVector.emplace_back(++register_num, words[tmp_pos].name, "int", constFlag);
             typeStack.emplace_back(32);
-            printf("%%%d = alloca i32\n", register_num);
+            printf("%%%d = alloca", register_num);
             tmp_register = register_num;
             registerStack.push(register_num);
             now_pos = get_next();
@@ -785,12 +787,21 @@ void Decl(){
                 }
             }
             if (arrayFlag){
+                declArray(1);
+            } else{
+                printf(" i32");
+            }
+            puts("");
+            if (arrayFlag){
                 for (int i = lVarVector.back().array.size() - 1; i >= 0; --i) {
                     if (i != lVarVector.back().array.size() - 1){
                         lVarVector.back().each_dimension[i] = lVarVector.back().array[i + 1] * lVarVector.back().each_dimension[i + 1];
                     }
                 }
-                printf("call void @memset(i32* %%%d, i32 0, i32 %d)\n", lVarVector.back().register_order, lVarVector.back().array[0] * lVarVector.back().each_dimension[0]);
+                for (int i = 1; i <= lVarVector.back().array.size(); ++i) {
+                    zeroArray(i);
+                }
+                printf("call void @memset(i32* %%%d, i32 0, i32 %d)\n", register_num, 4 * lVarVector.back().array[0] * lVarVector.back().each_dimension[0]);
             }
             if (words[now_pos].id == 12){
                 storeFlag = true;
@@ -798,7 +809,7 @@ void Decl(){
                 if (arrayFlag){
                     if (words[now_pos].id == 16){
                         now_pos = get_next();
-                        localArrayIni(1, register_num);
+                        localArrayIni(1, lVarVector.back().register_order);
                         if (now_pos <= 0){
                             return;
                         }
@@ -843,7 +854,31 @@ void Decl(){
     }
 }
 
-void localArrayIni(int dimension, int tmp_register){
+void declArray(int dimension){
+    printf(" [%d x", lVarVector.back().array[dimension - 1]);
+    if (dimension == lVarVector.back().array.size()){
+        printf(" i32");
+    } else{
+        declArray(dimension + 1);
+    }
+    printf("]");
+}
+
+void zeroArray(int dimension){
+    printf("%%%d = getelementptr", ++register_num);
+    typeStack.emplace_back(4);
+    declArray(dimension);
+    printf(", ");
+    declArray(dimension);
+    printf("* %%%d, i32 0, i32 0", register_num - 1);
+    puts("");
+}
+
+void localArrayIni(int dimension, int father_register){
+    if (words[now_pos].id == 17){
+        now_pos = get_next();
+        return;
+    }
     int element_num = lVarVector.back().array[dimension - 1];
     for (int i = 1; i <= element_num; ++i) {
         printf("%%%d = getelementptr ", ++register_num);
@@ -867,7 +902,7 @@ void localArrayIni(int dimension, int tmp_register){
         for (int j = dimension - 1; j < lVarVector.back().array.size(); ++j) {
             printf("]");
         }
-        printf("* %%%d, i32 0, i32 %d\n", tmp_register, i - 1);
+        printf("* %%%d, i32 0, i32 %d\n", father_register, i - 1);
         registerStack.push(register_num);
         if (words[now_pos].id == 28){
             if (i == 1){
@@ -877,6 +912,7 @@ void localArrayIni(int dimension, int tmp_register){
             now_pos = get_next();
         }
         if (dimension == lVarVector.back().array.size()){
+            int tmp_register = register_num;
             if (words[now_pos].id == 16){
                 now_pos = -6;
                 return;
@@ -884,6 +920,7 @@ void localArrayIni(int dimension, int tmp_register){
             if (words[now_pos].id == 17){
                 registerStack.push(0);
             } else{
+
                 Exp();
             }
             printf("store i32 ");
@@ -962,7 +999,9 @@ void getArray(int location, int dimension){
             return;
         }
         now_pos = get_next();
+        opStack.push('.');
         Exp();
+        //printf("registerStack.top(): %d\n", registerStack.top());
         if (now_pos <= 0){
             return;
         }
@@ -1128,12 +1167,12 @@ void Exp(){
                             return;
                         }
                     }
-                    if (lVarVector[i].isGlobal){
-                        printf("%%%d = load i32, i32* @%s\n", ++register_num, lVarVector[i].name);
+                    if (isArray){
+                        printf("%%%d = load i32, i32* %%%d\n", ++register_num, registerStack.top());
+                        registerStack.pop();
                     } else{
-                        if (isArray){
-                            printf("%%%d = load i32, i32* %%%d\n", ++register_num, registerStack.top());
-                            registerStack.pop();
+                        if (lVarVector[i].isGlobal){
+                            printf("%%%d = load i32, i32* @%s\n", ++register_num, lVarVector[i].name);
                         } else{
                             printf("%%%d = load i32, i32* %%%d\n", ++register_num, lVarVector[i].register_order);
                         }
@@ -1156,6 +1195,10 @@ void Exp(){
                 break;
             }
             while (!opStack.empty()){
+                if (opStack.top() == '.'){
+                    opStack.pop();
+                    break;
+                }
                 //printf("!!!%c, %d\n", opStack.top(), opStack.size());
                 calculate();
             }
